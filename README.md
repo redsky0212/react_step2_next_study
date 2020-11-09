@@ -94,6 +94,7 @@ export default Signup;
   - 여기에 AppLayout.js 컴포넌트 생성
   - prop-types를 설치해서 사용한다. (npm i prop-types)
     - props로 넘어오는 것들은 PropTypes로 검사를 해주는게 좋음. (TypeScript라면 사용할 필요가 없음)
+    - 만약 children에 아무것도 없으면 'Failed prop type: The prop \`children\` is marked as required in \`AppLayout\`, but its value is \`undefined\`.' 에러가 발생하였다.
   ```javascript
   import React from 'react';
   import PropTypes from 'prop-types';
@@ -129,4 +130,18 @@ export default Signup;
   ```
   * 페이지별로 여러 다양한 레이아웃도 적용 가능하다.
     - 원하는 페이지의 jsx부분에 layout컴포넌트를 import해서 위처럼 감싸주면 된다.
-  
+
+## Link 사용
+* next에서는 react-router사용 안함.
+  - 자체적으로 Link라는것을 사용함.
+  ```javascript
+  // next/link를 import한다.
+  import Link from 'next/link';
+
+  // jsx부분에 아래와 같이 Link를 사용하고 href에 라우터 경로를 넣는다. 'a'태그에 href를 넣지 않는다.
+  <Link href="/"><a>홈</a></Link>
+  <Link href="/profile"><a>프로필</a></Link>
+  <Link href="/signup"><a>회원가입</a></Link>
+  ```
+## eslint 설치 사용.
+* npm i eslint -D (개발시에만 사용할꺼기때문에)
