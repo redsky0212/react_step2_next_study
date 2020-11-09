@@ -144,4 +144,33 @@ export default Signup;
   <Link href="/signup"><a>회원가입</a></Link>
   ```
 ## eslint 설치 사용.
-* npm i eslint -D (개발시에만 사용할꺼기때문에)
+* npm i eslint eslint-plugin-import eslint-plugin-react eslint-plugin-react-hooks -D (개발시에만 사용할꺼기때문에)
+* .eslintrc 파일 생성.
+```javascript
+{
+  "parserOptions": {
+    "ecmaVersion": 2020,  // js버전
+    "sourceType": "module", // import export를 사용할꺼므로 module
+    "ecmaFeatures": {
+      "jsx": true // jsx를 사용
+    }
+  },
+  "env": {  // 환경
+    "browser": true,  // 브라우저 돌아감
+    "node": true  // node에서 돌아감
+  },
+  "extends": [
+    "eslint:recommended", // eslint의 기본규칙을 따른다.
+    "plugin:react/recommended"
+  ],
+  "plugins": [
+    "import", // 아까 설치한 plugin을 적음.
+    "react-hooks" // 아까 설치한 plugin을 적음.
+  ],
+  "rules": {  // 개별적으로 룰을 끄거나 켤 수 있다.
+    "jsx-a11y/label-has-associated-control": "off",
+    "jsx-a11y/anchor-is-valid": "off"
+  }
+}
+```
+* eslint를 설치 했지만 vscode에서 연동 되려면 extension을 설치 해줘야 한다.
