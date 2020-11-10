@@ -175,6 +175,16 @@ export default Signup;
 ```
 * eslint를 설치 했지만 vscode에서 연동 되려면 extension을 설치 해줘야 한다.
 
-## antd 디자인템플릿 사용
+## antd 4버전 디자인템플릿 사용 (npm i antd @ant-design/icons)
+* 프론트앤드 시각에서 더미 데이터를 가지고 진행.
+* ant design [https://ant.design/](https://ant.design/)
+* 아이콘은 용량이 많아서 따로 분리 되어서 icons을 따로 설치해준다.
+* react-dropzone (이미지 등 드래그 앤 드롭 기능 라이브러리)[https://react-dropzone.js.org/](https://react-dropzone.js.org/)
 
-## styled-components 사용
+## styled-components 사용(npm i styled-components)
+* emotion(이모션) styled-components와 거의 비슷하나 `SSR에 더 편함`.
+  - [https://emotion.sh/docs/introduction](https://emotion.sh/docs/introduction)
+* npm trends에서 어떤게 더 대중적인지 알 수 있다. [https://www.npmtrends.com/](https://www.npmtrends.com/)
+
+## antd를 사용하여 메뉴 만들기
+* 
