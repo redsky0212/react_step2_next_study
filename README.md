@@ -182,9 +182,107 @@ export default Signup;
 * react-dropzone (이미지 등 드래그 앤 드롭 기능 라이브러리)[https://react-dropzone.js.org/](https://react-dropzone.js.org/)
 
 ## styled-components 사용(npm i styled-components)
-* emotion(이모션) styled-components와 거의 비슷하나 `SSR에 더 편함`.
+* emotion(이모션): styled-components와 거의 비슷하나 `SSR에 더 편함`.
   - [https://emotion.sh/docs/introduction](https://emotion.sh/docs/introduction)
 * npm trends에서 어떤게 더 대중적인지 알 수 있다. [https://www.npmtrends.com/](https://www.npmtrends.com/)
 
-## antd를 사용하여 메뉴 만들기
-* 
+## antd를 사용하여 메뉴 만들기(_app.js)
+* 대충 되어있는 메뉴 부분을 antd를 사용하여 수정해본다.
+```javascript
+// 기존소스
+<div>
+  <Link href="/"><a>홈</a></Link>
+  <Link href="/profile"><a>프로필</a></Link>
+  <Link href="/signup"><a>회원가입</a></Link>
+  {children}
+</div>
+// antd디자인을 적용해보자.
+import { Menu } from 'antd';
+
+return (
+  <>
+    <Menu mode="horizontal">
+      <Menu.Item>
+        <Link href="/"><a>홈</a></Link>
+      </Menu.Item>
+      <Menu.Item>
+        <Link href="/profile"><a>프로필</a></Link>
+      </Menu.Item>
+      <Menu.Item>
+        <Link href="/signup"><a>회원가입</a></Link>
+      </Menu.Item>
+    </Menu>
+    {children}
+  </>
+);
+```
+* 위 처럼 했을때 변경 되기는 했지만 뭔가 CSS가 적용 안된듯 하다.
+  - antd의 react에서 css를 연결해줘야한다. 공식문서의 DOCS의 설치방법을 참조해서 css를 로딩 시킨다.
+  - css파일은 import를 못하는데 webpack이 css의 import를 도와 결과물에 style태그로 모두 가져오게 적용해준다.
+    - antd의 css파일은 최상위 공통 컴포넌트에서 적용해준다.
+      - _app.js는 index.js의 부모라고 생각하면 됨.
+    - 이때 기본 next에서 제공해주는 pages안에 _app.js파일에 적용해준다.
+    > (잠깐 참조) next에서 제공해주는 사용자 지정 기능
+    >> _app.js [https://nextjs.org/docs/advanced-features/custom-app](https://nextjs.org/docs/advanced-features/custom-app)공통적인 레이아웃 유지 등등.<br><br>
+    >> _document.js [https://nextjs.org/docs/advanced-features/custom-document](https://nextjs.org/docs/advanced-features/custom-document)화면의 html태그와 body태그의 보강을 도와준다.<br>
+    >> _error.js [https://nextjs.org/docs/advanced-features/custom-error-page](https://nextjs.org/docs/advanced-features/custom-error-page) 404.js, 500.js도 만들 수 있으며 에러처리에 도움을 줍니다.
+    ```javascript
+    // _app.js
+    import React from 'react';
+    import ProTypes from 'prop-types';
+    import 'antd/dist/antd.css';
+
+    const NodeBird = ({ Component }) => {
+      return (
+        <Component />
+      );
+    };
+
+    NodeBird.ProTypes = {
+      Component: ProTypes.elementType.isRequired,
+    };
+
+    export default NodeBird;
+    ```
+## next에서 head태그 부분을 커스텀 하기
+* 예를 들어 title이나 meta태그를 적용하고싶다 했을때
+  - next에서 Head컴포넌트를 제공한다.[https://nextjs.org/docs/api-reference/next/head](https://nextjs.org/docs/api-reference/next/head)
+  ```javascript
+  // _app.js (모두 공통적용할 때)
+  import Head from 'next/head';
+
+  return (
+    <>
+    <Head>
+      <title>NodeBird</title>
+      <meta charSet="utf-8" />
+    </Head>
+    <Component />
+    </>
+  );
+  ```
+* 각각 페이지에 다르게 head를 적용해보자
+```javascript
+// profile.js (각각의 페이지에 head적용할 때)
+import Head from 'next/head';
+<>
+    <Head>
+      <title>내 프로필 : NodeBird</title>
+      <meta charSet="utf-8" />
+    </Head>
+    <AppLayout>
+      <div>프로필!</div>
+    </AppLayout>
+</>
+// signup.js
+import Head from 'next/head';
+<>
+    <Head>
+      <title>회원가입 : NodeBird</title>
+      <meta charSet="utf-8" />
+    </Head>
+    <AppLayout>
+      <div>회원가입 페이지!</div>
+    </AppLayout>
+</>
+```
