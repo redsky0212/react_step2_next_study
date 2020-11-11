@@ -286,3 +286,6 @@ import Head from 'next/head';
     </AppLayout>
 </>
 ```
+
+## antd의 반응형 그리드 적용해보기
+* ..
