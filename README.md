@@ -288,4 +288,44 @@ import Head from 'next/head';
 ```
 
 ## antd의 반응형 그리드 적용해보기
-* ..
+* antd의 grid시스템, input 적용해보기
+* 먼저 antd의 Input Search넣어보기
+```javascript
+// 메뉴 넣었던 부분에 Input Search 넣기
+import { Menu, Input } from 'antd';
+
+<Input.Search enterButton style={{verticalAlign: 'middle'}} />
+```
+* grid 시스템 적용해보기
+  - 모바일, 테블릿, pc에 따라 방응형으로 저절로 바뀌게 적용.
+  - Row, Col
+  - 반응형을 할때는 모발일 부터 점점 큰 사이즈로 진행해 나가는게 좋다.
+  ```javascript
+  // 최대 24를 기준으로 적용.
+  // xs, sm, md, lg 등 다양한 크기에 대한 적용을 할 수있다.
+  // gutter : 사이를 벌려주는 것
+  // 속성중 target="_blank"는 보안위협이 있어서  rel="noreferrer noopener" 같이 써준다.
+  <Row gutter={8}>
+    <Col xs={24} md={6}>왼쪽</Col>
+    <Col xs={24} md={12}>{children}</Col>
+    <Col xs={24} md={6}>
+      <a href="http://hyun0238.dothome.co.kr/redsky/devil" target="_blank" rel="noreferrer noopener">Made by Redsky</a>
+    </Col>
+  </Row>
+  ```
+  - 이건 UI 컴포넌트 제품마다 다 다르므로 공식문서에서 참고하면서 적용하면 됨.
+
+## 로그인 폼 만들기
+* 그리드의 왼쪽 부분에 로그인 폼을 만들어 보자.
+* 초반 서버가 없는 상태에서는 임시 state를 만들어서 그 데이터를 이용하여 사용한다.
+* 컴포넌트는 따로 components폴더를 만들어 그쪽에서 관리한다.
+  - 예전에는 container와 component를 따로 기능에따라 따로 만들었는데 훅스 나오면서 이제 굳이 따로 구분할 필요가 없다.
+```javascript
+import UserProfile from '../components/UserProfile';
+import LoginForm from '../components/LoginForm';
+
+// 임시 상태값을 만들어 로그인 여부에따라 다른 컴포넌트를 보여주게 처리.
+const [isLoggedIn, setIsLoggedIn] = useState(false);
+{isLoggedIn ? <UserProfile /> : <LoginForm />}
+```
+.... 작업중....
