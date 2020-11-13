@@ -328,4 +328,53 @@ import LoginForm from '../components/LoginForm';
 const [isLoggedIn, setIsLoggedIn] = useState(false);
 {isLoggedIn ? <UserProfile /> : <LoginForm />}
 ```
-.... 작업중....
+* 임시 로그인 상태값을 이용하여 위처럼 로그인 여부에 따라 두가지 컴포넌트를 만들어 렌더링 시킨다.
+  - [중요]`작업중 예상치 못한 에러가 발생하는 부분에 대하여 나중에 따로 블로그 같은곳에 해결방법 및 그때의 기억들을 자세히 정리하는 사전 느낌으로, 좋은 습관인거 같다.`
+* LoginForm.js 파일 기본 코딩 해보기
+```javascript
+// LoginForm.js ---------------------------
+import React, { useCallback, useState } from 'react';
+import { Button, Form, Input } from 'antd';
+import Link from 'next/link';
+
+const LoginForm = () => {
+  const [id, setId] = useState('');
+  const [password, setPassword] = useState('');
+
+  // onChange와 같은 자주쓰는 기능의 함수들은 나중에 커스텀 훅으로 따로 빼서 만들어 주는게 좋음.
+  // 단순히 모든 컴포넌트에 중복으로 들어가는 기능의 함수 이므로...
+  const onChangeId = useCallback((e) => {
+    setId(e.target.value);
+  }, []);
+
+  const onChangePassword = useCallback((e) => {
+    setPassword(e.target.value);
+  }, []);
+
+  return (
+    <Form>
+      <div>
+        <label htmlFor="user-id">아이디</label>
+        <br />
+        <Input name="user-id" value={id} onChange={onChangeId} required />
+      </div>
+      <div>
+      <label htmlFor="user-password">비밀번호</label>
+        <br />
+        <Input
+          name="user-password"
+          value={password}
+          onChange={onChangePassword}
+          required
+        />
+      </div>
+      <div>
+        <Button type="primary" htmlType="submit" loading={false}>로그인</Button>
+        <Link href="/signup"><a>회원가입</a></Link>
+      </div>
+    </Form>
+  );
+};
+
+export default LoginForm;
+```
