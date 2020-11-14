@@ -378,3 +378,7 @@ const LoginForm = () => {
 
 export default LoginForm;
 ```
+* 커스텀 훅에 대하여 공부할 필요가 있음.
+
+## 리렌더링에 대하여
+* ..
