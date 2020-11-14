@@ -388,19 +388,25 @@ export default LoginForm;
   // 좋지않은 방식
   const Aaa = () => {
     render (
-      <div style={{marginTop: 0}}>style적용하기</div>  // 객체를 바로 바인딩 시킨 형태는 리렌더링이 됨(주의).
+      <div style={{marginTop: 5}}>style적용하기</div>  // 객체를 바로 바인딩 시킨 형태는 리렌더링이 됨(주의).
     );
   };
-  // styled-component로 수정하여 적용한 모습
-  import styled from 'styled-component';
+  // styled-components로 수정하여 적용한 모습
+  import styled from 'styled-components';
 
+  // 일반 div태그같은 형태일때 적용한 모습
   const StyleDiv = styled.div`
-    margin-top: '0px';
+    margin-top: 5px;
+  `;
+  // antd와 같은 다른 것일때 적용한 모습
+  const SearchInput = styled(Input.Search)`
+    margin-top: 5px;
   `;
 
   const Aaa = () => {
     render (
       <StyleDiv></StyleDiv>
+      <SearchInput />
     );
   };
   ```
