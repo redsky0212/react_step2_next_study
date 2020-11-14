@@ -381,4 +381,26 @@ export default LoginForm;
 * 커스텀 훅에 대하여 공부할 필요가 있음.
 
 ## 리렌더링에 대하여
-* ..
+* styled-component를 사용할때 주의할 점.
+  - 스타일 객체를 바로 jsx부분에 넣으면 안됨.
+  - 객체가 jsx안에 있으면 hooks방식일 경우 render부분을 react가 파악할때 항상 새로운 객체가 생성되서 들어온것으로 판단하여 리렌더링 된다.
+  ```javascript
+  // 좋지않은 방식
+  const Aaa = () => {
+    render (
+      <div style={{marginTop: 0}}>style적용하기</div>  // 객체를 바로 바인딩 시킨 형태는 리렌더링이 됨(주의).
+    );
+  };
+  // styled-component로 수정하여 적용한 모습
+  import styled from 'styled-component';
+
+  const StyleDiv = styled.div`
+    margin-top: '0px';
+  `;
+
+  const Aaa = () => {
+    render (
+      <StyleDiv></StyleDiv>
+    );
+  };
+  ```
