@@ -381,32 +381,118 @@ export default LoginForm;
 * 커스텀 훅에 대하여 공부할 필요가 있음.
 
 ## 리렌더링에 대하여
+* react는 return부분 중에서 바뀐부분만 리렌더링 된다.
 * styled-components를 사용할때 주의할 점.
   - 스타일 객체를 바로 jsx부분에 넣으면 안됨.
   - 객체가 jsx안에 있으면 hooks방식일 경우 render부분을 react가 파악할때 항상 새로운 객체가 생성되서 들어온것으로 판단하여 리렌더링 된다.
-  ```javascript
-  // 좋지않은 방식
-  const Aaa = () => {
-    render (
-      <div style={{marginTop: 5}}>style적용하기</div>  // 객체를 바로 바인딩 시킨 형태는 리렌더링이 됨(주의).
-    );
-  };
-  // styled-components로 수정하여 적용한 모습
-  import styled from 'styled-components';
+```javascript
+// 좋지않은 방식
+const Aaa = () => {
+  render (
+    <div style={{marginTop: 5}}>style적용하기</div>  // 객체를 바로 바인딩 시킨 형태는 리렌더링이 됨(주의).
+  );
+};
+// styled-components로 수정하여 적용한 모습
+import styled from 'styled-components';
 
-  // 일반 div태그같은 형태일때 적용한 모습
-  const StyleDiv = styled.div`
-    margin-top: 5px;
-  `;
-  // antd와 같은 다른 것일때 적용한 모습
-  const SearchInput = styled(Input.Search)`
-    margin-top: 5px;
-  `;
+// 일반 div태그같은 형태일때 적용한 모습
+const StyleDiv = styled.div`
+  margin-top: 5px;
+`;
+// antd와 같은 다른 것일때 적용한 모습
+const SearchInput = styled(Input.Search)`
+  margin-top: 5px;
+`;
 
-  const Aaa = () => {
-    render (
-      <StyleDiv></StyleDiv>
-      <SearchInput />
-    );
-  };
-  ```
+const Aaa = () => {
+  render (
+    <StyleDiv></StyleDiv>
+    <SearchInput />
+  );
+};
+```
+* inline 스타일을 넣지말고 styled-components를 사용하거나 styled-components가 싫다면 useMemo를 사용하여 스타일을 적용한다.
+```javascript
+// useMemo사용한 방법
+const style = useMemo(() => ({ marginTop: 10 }), []);
+
+return (
+  <div style={style}></div>
+);
+```
+
+## 더미데이터로 로그인하기
+* 서버가 없는 경우 더미데이터를 이용하여 로그인 화면 처리 하기
+```javascript
+// AppLayout.js----------------------------------
+// (isLogedIn값을 이용하여 LoginForm컴포넌트를 보여주거나 숨기거나 한다.)
+return (
+  <Col>
+  {isLoggedIn ? <UserProfile /> : <LoginForm setIsLoggedIn={setIsLoggedIn} />}
+  </Col>
+);
+// LoginForm.js------------------------------------
+// (props로 넘어온 setIsLoggedIn로 값을 변경한다.)
+const onsubmitForm = useCallback(() => {
+  // antd의 Form은 e.preventDefault() 가 이미 적용되어있으므로 할 필요없음.
+  console.log(id, password);
+  setIsLoggedIn(true);
+}, []);
+
+return (
+  <Form onFinish={onsubmitForm}>
+    <div>
+    <label htmlFor="user-id">아이디</label>
+      <br />
+      <Input name="user-id" value={id} onChange={onChangeId} required />
+    </div>
+    <div>
+    <label htmlFor="user-password">비밀번호</label>
+      <br />
+      <Input
+        name="user-password"
+        value={password}
+        onChange={onChangePassword}
+        required
+      />
+    </div>
+    <ButtonWrapper>
+      <Button type="primary" htmlType="submit" loading={false}>로그인</Button>
+      <Link href="/signup"><a>회원가입</a></Link>
+    </ButtonWrapper>
+  </Form>
+);
+```
+* 로그인 하고나면 UserProfile컴포넌트가 열리므로 UserProfile컴포넌트를 코딩한다.
+```javascript
+import React, { useCallback } from 'react';
+import { Button, Card } from 'antd';
+import Avatar from 'antd/lib/avatar/avatar';
+
+const UserProfile = ({ setIsLoggedIn }) => {
+  
+  const onLogout = useCallback(() => {
+    setIsLoggedIn(false);
+  }, []);
+  
+  return (
+    <Card
+      actions={[
+        <div key="twit">짹짹</div>,
+        <div key="twit">짹짹</div>,
+        <div key="twit">짹짹</div>,
+      ]}>
+      <Card.Meta
+        avatar={<Avatar>ZC</Avatar>}
+        title="ZeroCho"
+      />
+      <Button onClick={onLogout}>로그아웃</Button>
+    </Card>
+  );
+};
+
+export default UserProfile;
+```
+
+## 크롬확장프로그램 및 Q n A
+* a태그에 target="_blank"를 하면 꼭 rel="noreferrer noopener" 를 붙여준다. 보안에 위협되는 것을 방지하기 위함.
