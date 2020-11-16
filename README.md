@@ -496,3 +496,204 @@ export default UserProfile;
 
 ## 크롬확장프로그램 및 Q n A
 * a태그에 target="_blank"를 하면 꼭 rel="noreferrer noopener" 를 붙여준다. 보안에 위협되는 것을 방지하기 위함.
+* 크롬확장 프로그램에서 React Developer Tools와 Redux DevTools를 설치.
+
+## 프로필 페이지 만들기
+* 화면 처음 코딩할때 우선 들어갈 컴포넌트를 나열하는 식으로 대략 코딩을 한다.
+* Form은 왠만하면 이미 만들어져있는 라이브러리를 사용하는걸 추천.
+  - 아니면 미리 만들어놓고 그걸 재사용하는것도 나쁘지 않을거 같다고 생각...
+```javascript
+// profile.js-------------------------------------------------
+import React from 'react';
+
+import NicknameEditForm from '../components/NicknameEditForm';
+import AppLayout from '../components/AppLayout';
+import FollowList from '../components/FollowList';
+
+const Profile = () => {
+  const followerList = [{ nickname: '제로초' }, { nickname: '바보' }, { nickname: '노드버드오피셜' }];
+  const followingList = [{ nickname: '제로초' }, { nickname: '바보' }, { nickname: '노드버드오피셜' }];
+
+  return (
+    <AppLayout>
+      <NicknameEditForm />
+      <FollowList
+        header="팔로잉 목록"
+        data={followingList}
+      />
+      <FollowList
+        header="팔로워 목록"
+        data={followerList}
+      />
+    </AppLayout>
+  );
+};
+
+export default Profile;
+```
+* 더미데이터로 List를 그림.
+* 인라인으로 들어가는 객체 데이터는 useMemo, styled-components등 으로 최적화 한다.
+* antd의 icons는 따로 분리되어서 따로 가져와서 적용해준다.
+* 예전에는 container에서 component의 구조로 되어있기 때문에 잘개 쪼개었을때 부담이 있었으나. hooks구조에서는 잘개 쪼개는거에 대한 부담이 없다고 생각하면 됨.
+* 컴포넌트는 잘개잘개 쪼개자!! 
+* 100줄 넘어가면 쪼개자!!
+* 컴포넌트에 props개수가 너무 많아지면 쪼갠다 생각하면 됨.
+```javascript
+// FollowList.js-------------------------------------------------
+import { Button, Card, List } from 'antd';
+import { StopOutlined } from '@ant-design/icons';
+import React from 'react';
+import PropTypes from 'prop-types';
+
+const FollowList = ({ header, data }) => (
+  <List
+    style={{ marginBottom: '20px' }}
+    grid={{ gutter: 4, xs: 2, md: 3 }}
+    size="small"
+    header={<div>{header}</div>}
+    loadMore={<div style={{ textAlign: 'center', margin: '10px 0'}}><Button>더 보기</Button></div>}
+    bordered
+    dataSource={data}
+    renderItem={(item) => (
+      <List.Item style={{ marginTop: '20px' }}>
+        <Card actions={[<StopOutlined key="stop" />]}>
+          <Card.Meta description={item.nickname} />
+        </Card>
+      </List.Item>
+    )}
+  />
+);
+
+FollowList.propTypes = {
+  header: PropTypes.string.isRequired,
+  data: PropTypes.array.isRequired,
+};
+
+export default FollowList;
+```
+```javascript
+// NicknameEditForm.js-------------------------------------------------
+import { Form, Input } from 'antd';
+import React from 'react';
+
+const NicknameEditForm = () => {
+  // style은 useMemo나 styled-components를 사용해서 최적화 하는게 좋다.
+  return (
+    <Form style={{ marginBottom: '20px', border: '1px solid #d9d9d9', padding: '20px' }}>
+      <Input.Search addonBefore="닉네임" enterButton="수정" />
+    </Form>
+  );
+};
+
+export default NicknameEditForm;
+```
+
+## 회원가입 페이지 만들기 &amp; 커스텀 훅!!
+```javascript
+import React, { useState, useCallback } from 'react';
+import { Form, Input, Checkbox, Button } from 'antd';
+import PropTypes from 'prop-types';
+
+import AppLayout from '../components/AppLayout';
+import useInput from '../hooks/useInput';
+
+const TextInput = ({ value }) => {
+  return (
+    <div>{value}</div>
+  )
+};
+
+TextInput.propTypes = {
+  value: PropTypes.string,
+};
+
+const Signup = () => {
+  const [passwordCheck, setPasswordCheck] = useState('');
+  const [term, setTerm] = useState(false);
+  const [passwordError, setPasswordError] = useState(false);
+  const [termError, setTermError] = useState(false);
+
+  const [id, onChangeId] = useInput('');
+  const [nick, onChangeNick] = useInput('');
+  const [password, onChangePassword] = useInput('');
+
+  const onSubmit = useCallback(() => {
+    if (password !== passwordCheck) {
+      return setPasswordError(true);
+    }
+    if (!term) {
+      return setTermError(true);
+    }
+  }, [password, passwordCheck, term]);
+
+  const onChangePasswordCheck = useCallback((e) => {
+    setPasswordError(e.target.value !== password);
+    setPasswordCheck(e.target.value);
+  }, [password]);
+
+  const onChangeTerm = useCallback((e) => {
+    setTermError(false);
+    setTerm(e.target.checked);
+  }, []);
+
+  return (
+    <AppLayout>
+      <Form onFinish={onSubmit} style={{ padding: 10 }}>
+        <TextInput value="135135" />
+        <div>
+          <label htmlFor="user-id">아이디</label>
+          <br />
+          <Input name="user-id" value={id} required onChange={onChangeId} />
+        </div>
+        <div>
+          <label htmlFor="user-nick">닉네임</label>
+          <br />
+          <Input name="user-nick" value={nick} required onChange={onChangeNick} />
+        </div>
+        <div>
+          <label htmlFor="user-password">비밀번호</label>
+          <br />
+          <Input name="user-password" type="password" value={password} required onChange={onChangePassword} />
+        </div>
+        <div>
+          <label htmlFor="user-password-check">비밀번호체크</label>
+          <br />
+          <Input
+            name="user-password-check"
+            type="password"
+            value={passwordCheck}
+            required
+            onChange={onChangePasswordCheck}
+          />
+          {passwordError && <div style={{ color: 'red' }}>비밀번호가 일치하지 않습니다.</div>}
+        </div>
+        <div>
+          <Checkbox name="user-term" checked={term} onChange={onChangeTerm}>제로초 말을 잘 들을 것을 동의합니다.</Checkbox>
+          {termError && <div style={{ color: 'red' }}>약관에 동의하셔야 합니다.</div>}
+        </div>
+        <div style={{ marginTop: 10 }}>
+          <Button type="primary" htmlType="submit">가입하기</Button>
+        </div>
+      </Form>
+    </AppLayout>
+  );
+};
+
+export default Signup;
+```
+* 커스텀 훅스 만들기
+  - 먼저 hooks폴더를 생성
+  - js파일을 만들어 커스텀 훅스를 만든다. 여기서는 useInput.js
+  - 특히 form부분의 input같은 것들은 중복인 소스들이 많다. 그럴때 커스텀 훅스를 만들어 사용하면 중복제거에 좋다.
+  - 소스가 조금 다르면 커스텀훅스로 합치지 않아도 된다.
+  ```javascript
+  import { useState, useCallback } from 'react';
+
+  export default (initValue = null) => {
+    const [value, setter] = useState(initValue);
+    const handler = useCallback((e) => {
+      setter(e.target.value);
+    }, []);
+    return [value, handler];
+  };
+  ```
