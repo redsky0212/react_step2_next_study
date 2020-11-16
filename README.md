@@ -697,3 +697,14 @@ export default Signup;
     return [value, handler];
   };
   ```
+
+## 리덕스, 필요성
+* redux, mobx 가 많이 쓰임
+  - redux는 초보일때 사용하면 좋으나 코드량이 많음
+  - 초보 탈출 이후에는 mobx을 사용하는게 생산성 측면에서 좋음.
+* 일단 next를 redux와 붙이는 과정이 꽤나 복잡한데 그걸 좀 쉽게 해주는 라이브러리가 있음.
+  - next-redux-wrapper 
+  - next-redux-wrapper를 사용하면 일반 redux를 사용했을때와 동작이 좀 다를 수 있음.
+* redux는 중앙 데이터 저장소 역할.
+  - redux, mobx, context API모두 비슷함.
+* 비동기 데이터 요청.
