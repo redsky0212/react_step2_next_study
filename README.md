@@ -707,4 +707,8 @@ export default Signup;
   - next-redux-wrapper를 사용하면 일반 redux를 사용했을때와 동작이 좀 다를 수 있음.
 * redux는 중앙 데이터 저장소 역할.
   - redux, mobx, context API모두 비슷함.
+  - 너무 커지면 리듀서를 쪼개서 관리 할 수도 있음.
 * 비동기 데이터 요청.
+  - context API를 사용하면 요청, 성공, 실패 처리에 대한 로직을 직접 구현해야함.
+    - component에서 비동기 요청을 하게되는 경우가 생김.(좋지않음)
+    - 물론 따로 분리해서 만들 수도 있는데 그렇게 되면 결국 redux와 같게 됨.
