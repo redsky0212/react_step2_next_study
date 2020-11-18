@@ -726,6 +726,7 @@ export default Signup;
   - 어차피 배포모드에서는 가비지가 되므로 문제없음.
 
 ## Redux들어가기전 Redux관련 정리
+* REACT_REDUX.md파일을 참조.
 * redux 3원칙
   - 모든 상태는 하나의 소토어 안에서... 데이터 흐름의 원천은 store.
   - state는 readonly이다.
