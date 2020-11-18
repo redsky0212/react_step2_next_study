@@ -724,3 +724,23 @@ export default Signup;
   - 그렇지 않고 바로할당 obj.name = 값; 이렇게 바꾸면 참조 관계가 되므로 실제 내부값은 변경되었지만 객체 자체가 바뀌지 않았으므로 history관리가 되지 않고 react는 변경에 대한 인식을 하지 못함.
   - ...state를 사용하는 이유 : 항상 새로운 겍체로 변경하면 메모리에 새로 생성 되므로 메모리 관리가 되지 않을 수 있음. ...state를 사용하면 객체 내부의 값들은 참조유지가 되므로 메모리 관리에 유리하다.
   - 어차피 배포모드에서는 가비지가 되므로 문제없음.
+
+## Redux들어가기전 Redux관련 정리
+* redux 3원칙
+  - 모든 상태는 하나의 소토어 안에서... 데이터 흐름의 원천은 store.
+  - state는 readonly이다.
+  - 상태변경은 action을 통한 dispatch로 기존 상태값을 가져와 새로운객체에 입력하여 return.
+* action
+```javascript
+// action 생성함수
+export const addCart = (item) => {
+  // action객체 리턴
+  return {
+    type: 'ADD_ITEM',
+    payload: item,
+  };
+};
+```
+  - action은 type속성을 가진 js객체.
+  - action 생성함수는 액션객체를 생성.
+  - dispatch 메서드에 넣어서 호출 (use dispatch)
