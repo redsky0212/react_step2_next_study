@@ -745,3 +745,8 @@ export const addCart = (item) => {
   - action은 type속성을 가진 js객체.
   - action 생성함수는 액션객체를 생성.
   - dispatch 메서드에 넣어서 호출 (use dispatch)
+
+## redux실제 구현
+* 일단 react-redux의 connect를 사용하지 않고 적용하는 방법 설명.
+* 루트에 reducers, store폴더 생성.
+* react-redux의 useSelector, useDispatch사용하는 방법
