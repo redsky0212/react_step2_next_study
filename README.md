@@ -702,9 +702,6 @@ export default Signup;
 * redux, mobx 가 많이 쓰임
   - redux는 초보일때 사용하면 좋으나 코드량이 많음
   - 초보 탈출 이후에는 mobx을 사용하는게 생산성 측면에서 좋음.
-* 일단 next를 redux와 붙이는 과정이 꽤나 복잡한데 그걸 좀 쉽게 해주는 라이브러리가 있음.
-  - next-redux-wrapper 
-  - next-redux-wrapper를 사용하면 일반 redux를 사용했을때와 동작이 좀 다를 수 있음.
 * redux는 중앙 데이터 저장소 역할.
   - redux, mobx, context API모두 비슷함.
   - 너무 커지면 리듀서를 쪼개서 관리 할 수도 있음.
@@ -712,8 +709,44 @@ export default Signup;
   - context API를 사용하면 요청, 성공, 실패 처리에 대한 로직을 직접 구현해야함.
     - component에서 비동기 요청을 하게되는 경우가 생김.(좋지않음)
     - 물론 따로 분리해서 만들 수도 있는데 그렇게 되면 결국 redux와 같게 됨.
+## next일때 wrapper, 리덕스 기본 사용법
+* 일단 `next`를 redux와 붙이는 과정이 꽤나 복잡한데 그걸 좀 쉽게 해주는 라이브러리가 있음.
+  - next-redux-wrapper (next를 사용하지 않고 react만 사용하면 쓸필요없음)
+  - next-redux-wrapper를 사용하면 일반 redux를 사용했을때와 동작이 좀 다를 수 있음.
+  - npm i redux 리덕스설치
+  - 설치 : npm i next-redux-wrapper (6버전)
+    - 버전 달라지면 사용방법이 달라지므로 공식문서 꼭 확인해야함.
+  - store폴더 생성하고 configureStore.js파일 생성.
+    - wrapper의 기본구조
+  ```javascript
+  import { createWrapper } from 'next-redux-wrapper';
+  import {createStore} from 'redux';
 
-## 리덕스 원리와 불변성
+  const configureSotre = () => {
+    //const store = createStore(reducer);
+    //return store;
+  };
+  // next-redux-wrapper의 createWrapper를 사용하여 redux의 createStore를 감싸준다.
+  // param : 첫번째는 redux의 store, 두번째는 옵션객체.
+  const wrapper = createWrapper(configureSotre, {
+    // 개발시에는 debug를 true로 켜두는게 좋음.
+    debug: process.env.NODE_ENV === 'development,'
+  });
+
+  export default wrapper;
+  ```
+* _app.js 파일 수정.
+  - next를 쓰면 Provider부분을 사용하지 않는다.
+    - Provider는 react-redux에 있음.
+  - 위에서 만든 wrapper로 앱 컴포넌트를 감싸준다.
+  ```javascript
+  // 만든 wrapper를 가져온다.
+  import wrapper from '../store/configureStore';
+  // 마지막 export부분에 감싸준다.
+  export default wrapper.withRedux(NodeBird);
+  ```
+
+## 리덕스 원리와 불변성(중요)
 * redux의 구조
   -  state ----> action(상태변경을 위한 action) -----> reducer(각 action의 구체적인 값 변경에 대한 로직구현) ----> state
 * 변경할 state를 action을 통하여 불벼성(상태변경이 되었다고 react가 인식)으로 state를 변경.
@@ -746,7 +779,103 @@ export const addCart = (item) => {
   - action 생성함수는 액션객체를 생성.
   - dispatch 메서드에 넣어서 호출 (use dispatch)
 
-## redux실제 구현
+## redux실제 구현(기본원리)
 * 일단 react-redux의 connect를 사용하지 않고 적용하는 방법 설명.
 * 루트에 reducers, store폴더 생성.
 * react-redux의 useSelector, useDispatch사용하는 방법
+* 일단 reducers폴더를 생성하고 index.js파일 생성.
+  - 루트 리듀서를 만든다.(리듀서는 함수이다.)
+  ```javascript
+  // 리듀서의 기본구조
+  const rootReducer = (state, action) => {
+    switch (action.type) {
+      default:
+        return state;
+    }
+  };
+
+  export default rootReducer;
+  ```
+  ```javascript
+  // configureStore.js에 reducer를 연결시킨다.
+  import reducer from '../reducers';
+
+  const configureSotre = () => {
+    const store = createStore(reducer); // reducer가져옴.
+    return store;
+  };
+  ```
+* initialState붙임, action객체연결
+```javascript
+// 초기 state
+const initialState = {
+  name: 'redsky',
+  age: 30,
+  password: 'babo',
+};
+// 액션객체(type속성이 포함되어있는 객체)
+// 이 action객체를 dispatch할때 첫번째 인자로 사용한다.
+const changeNickname = {
+  type: 'CHANGE_NICKNAME',
+  data: 'boogicho',
+};
+
+const rootReducer = (state = initialState, action) => {
+  switch (action.type) {
+    // dispatch하면 그 type에 해당하는 case가 실행됨.
+    case 'CHANGE_NICKNAME':
+      return { ...state, name: action.data };
+    default:
+      return state;
+  }
+};
+```
+* 매번 너무 많은 액션객체가 생길 수 있음. (문제점)
+  - action creator(동적액션생성기) 사용
+  - data를 인자로 받아 액션객체를 리턴하는 식으로 개선이 됨.
+```javascript
+// action creator
+const changeNickname = (data) => {
+  return {
+    type: 'CHANGE_NICKNAME',
+    data,
+  };
+};
+
+// component부분에서 dispatch할때 값만 바꾸면 실행되게 할 수 있음.
+store.dispatch(changeNickname('boogicho'));
+```
+* 다음은 async action creator가 있다.(saga때 배움)
+## AppLayout.js, LoginForm에서 action사용해보기
+* react-redux의 `useSelector, useDispatch`사용 (설치: `npm i react-redux`)
+  - AppLayout.js에서 redux의 store의 사용할 값을 useSelector로 가져온다.
+  ```javascript
+  import {useSelector} from 'react-redux';
+
+  const AppLayout = ({ children }) => {
+    // redux의 state에서 값 가져옴
+    const isLoggedIn = useSelector((state) => state.user.isLoggedIn);
+
+    return (
+      {isLoggedIn ? <UserProfile /> : <LoginForm />}
+    );
+  };
+  ```
+  - LoginForm.js컴포넌트에서 dispatch해보기
+  ```javascript
+  import {useDispatch} from 'react-redux';
+  import {loginAction} from '../reducers';
+
+  const LoginForm = () => {
+    const dispatch = useDispatch();
+
+    const onsubmitForm = useCallback(() => {
+      // redux의 상태값 변경 action실행
+      dispatch(loginAction());
+    }, []);
+
+    return (<FormWrapper onFinish={onsubmitForm}></FormWrapper>);
+  };
+  ```
+## 미들웨어, 리덕스 데브툴즈 연결
+* ..

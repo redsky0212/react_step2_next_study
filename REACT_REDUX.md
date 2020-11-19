@@ -10,6 +10,7 @@
   - <img src="front/public/images/React-redux.png" width="100%" />
   - redux만 사용하면 필요하지 않은 모든 컴포넌트에도 store가 전달된다는 단점.
   - 각 컴포넌트마다 store가 연결되어서 props가 필요없고 상태관리가 간편한데 props를 받아 처리하는게 아니라서 상태값 의존적이고 부품으로써의 재사용성이 떨어짐
+  - 각 컴포넌트에서 비동기 호출 및 성공,실패,요청 등을 다 코딩 해줘야 하므로 문제.
 * 그래서 redux를 이용한 Presentational Component, Container Component로 나눠서 처리
   - 무조건 나눌필요는 없음 (상황에 맞게)
   - Container Component
