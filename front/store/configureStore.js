@@ -1,10 +1,16 @@
 import { createWrapper } from 'next-redux-wrapper';
-import {createStore} from 'redux';
+import {createStore, applyMiddleware, compose} from 'redux';
+import {composeWithDevTools} from 'redux-devtools-extension';
 
 import reducer from '../reducers';
 
 const configureSotre = () => {
-  const store = createStore(reducer);
+  const middlewares = [];
+  const enhancer = process.env.NODE_ENV === 'production' ?
+                    compose(applyMiddleware(...middlewares)) // 배포용일때는 devtools와 연결하지 않음.
+                    : composeWithDevTools(applyMiddleware(...middlewares)) // 개발일때는 devtools와 연결
+
+  const store = createStore(reducer, enhancer);
   return store;
 };
 // next-redux-wrapper의 createWrapper를 사용하여 redux의 createStore를 감싸준다.

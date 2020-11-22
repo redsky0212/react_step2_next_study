@@ -1,53 +1,23 @@
-const initialState = {
-  user: {
-    isLoggedIn: false,
-    user: null,
-    signUpData: {},
-    loginData: {},
-  },
-  post: {
-    mainPosts: [],
-  },
-};
+import {HYDRATE} from 'next-redux-wrapper';
+import { combineReducers } from 'redux';
 
-// action---------------------------------
-export const loginAction = (data) => {
-  return {
-    type: 'LOG_IN',
-    data,
-  };
-};
-export const logoutAction = (data) => {
-  return {
-    type: 'LOG_OUT',
-    data,
-  };
-};
+import user from './user';
+import post from './post';
 
 // reducer-----------------------------------
-const rootReducer = (state = initialState, action) => {
-  switch (action.type) {
-    case 'LOG_IN':
-      return {
-        ...state,
-        user: {
-          ...state.user,
-          isLoggedIn: true,
-          user: action.data,
-        }
-      };
-    case 'LOG_OUT':
-      return {
-        ...state,
-        user: {
-          ...state.user,
-          isLoggedIn: false,
-          user: null,
-        }
-      };
-    default:
-      return state;
-  }
-};
+const rootReducer = combineReducers({
+  // ssr을 위한 HYDRATE를 root에 추가.
+  index: (state = {}, action) => {
+    switch (action.type) {
+      case HYDRATE:
+        console.log(HYDRATE);
+        return {...state, ...action.payload};
+      default:
+        return state;
+    }
+  },
+  user,
+  post,
+});
 
 export default rootReducer;

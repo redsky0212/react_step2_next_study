@@ -746,6 +746,10 @@ export default Signup;
   export default wrapper.withRedux(NodeBird);
   ```
 
+## next-redux-wrapper HYDRATE
+* 추 후 6강에서 HYDRATE에 대하여 설명
+* reducer의 case문에 HYDRATE를 하나 추가한다.
+
 ## 리덕스 원리와 불변성(중요)
 * redux의 구조
   -  state ----> action(상태변경을 위한 action) -----> reducer(각 action의 구체적인 값 변경에 대한 로직구현) ----> state
@@ -848,6 +852,8 @@ store.dispatch(changeNickname('boogicho'));
 * 다음은 async action creator가 있다.(saga때 배움)
 ## AppLayout.js, LoginForm에서 action사용해보기
 * react-redux의 `useSelector, useDispatch`사용 (설치: `npm i react-redux`)
+  - useSelector : redux의 state값을 가져오는것
+  - useDispatch : redux의 action객체를 실행해서 해당 type의 reducer를 실행하는 것.
   - AppLayout.js에서 redux의 store의 사용할 값을 useSelector로 가져온다.
   ```javascript
   import {useSelector} from 'react-redux';
@@ -878,4 +884,112 @@ store.dispatch(changeNickname('boogicho'));
   };
   ```
 ## 미들웨어, 리덕스 데브툴즈 연결
-* ..
+* 만든 reducer로 createStore를 통해 만든 store 코딩 부분이 있다.
+  - 이때 createStore()의 첫번째인자는 reducer이고 두번째 인자에는 store에 미들웨어를 연결할 수 있다.
+  - 설치한 react devtools와 연결하기 위하여 `npm i redux-devtools-extension` 설치하고 연결.
+```javascript
+// configureStore.js파일---------------------------------
+import {composeWithDevTools} from 'redux-devtools-extension';
+const configureSotre = () => {
+  const middlewares = [];
+  const enhancer = process.env.NODE_ENV === 'production' ?
+                    compose(applyMiddleware(...middlewares)) // 배포용일때는 devtools와 연결하지 않음.
+                    : composeWithDevTools(applyMiddleware(...middlewares)) // 개발일때는 devtools와 연결
+
+  const store = createStore(reducer, enhancer);
+  return store;
+};
+```
+* 미들웨어를 배열로 따로 빼서 그것을 구조분해해서 applyMiddleware에 넘겨줘야 에러가 나지 않는다.
+
+## 리듀서 쪼개기
+* reducer가 너무 길어지면 다른 파일로 쪼개서 관리한다.
+  - reducers폴더에 user.js, post.js파일을 따로 만들어서 리듀서를 쪼갠다.
+  - 기존 reducers/index.js에 모두 모여있던 소스를 각 업무에 맞게 나눠서 소스를 분리해준다.
+* reducers/index.js 파일 다시 정리
+  - reducer는 함수이기때문에 객체는 합치기 쉽지만 함수는 합치기 어려우므로 combineReducer의 도움을 받아 합친다.
+  - 각각의 initialState도 각 user안에, post안에 initialState가 들어가 있게 합쳐진다.
+```javascript
+import {HYDRATE} from 'next-redux-wrapper';
+import { combineReducers } from 'redux'; // 흩어져있는 리듀서를 합치기 위한 것.
+
+import user from './user';
+import post from './post';
+
+const rootReducer = combineReducers({
+  // ssr을 위한 HYDRATE를 root에 추가.
+  index: (state = initialState, action) => {
+    switch (action.type) {
+      case HYDRATE:
+        console.log(HYDRATE);
+        return {...state, ...action.payload};
+      default:
+        return state;
+    }
+  },
+  user,
+  post,
+});
+
+export default rootReducer;
+```
+```javascript
+// reducers/user.js--------------------------------------------
+const initialState = {
+  isLoggedIn: false,
+  user: null,
+  signUpData: {},
+  loginData: {},
+};
+
+// action creator
+export const loginAction = (data) => {
+  return {
+    type: 'LOG_IN',
+    data,
+  };
+};
+export const logoutAction = (data) => {
+  return {
+    type: 'LOG_OUT',
+    data,
+  };
+};
+
+const reducer = (state = initialState, action) => {
+  switch (action.type) {
+    case 'LOG_IN':
+      return {
+        ...state,
+          isLoggedIn: true,
+          user: action.data,
+      };
+    case 'LOG_OUT':
+      return {
+        ...state,
+        isLoggedIn: false,
+        user: null,
+      };
+    default:
+      return state;
+  }
+};
+
+export default reducer;
+```
+```javascript
+// reducers/post.js--------------------------------------------
+const initialState = {
+  mainPosts: [],
+};
+
+const reducer = (state = initialState, action) => {
+  switch (action.type) {
+    default:
+      return state;
+  }
+};
+
+export default reducer;
+```
+* 이렇게 분리해서 만들어진 reducer를 각 화면에서 불러오는 부분도 경로가 틀려졌기 때문에 수정해준다.
