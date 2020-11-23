@@ -995,9 +995,24 @@ export default reducer;
 * 이렇게 분리해서 만들어진 reducer를 각 화면에서 불러오는 부분도 경로가 틀려졌기 때문에 수정해준다.
 
 ## 더미데이터를 이용하여 포스트폼 만들기
+* 강좌 소스는 참조하는 방향으로 하고 나중에 내 애플리케이션 만들때 참조하자.
 * 가운데 포스트부분을 만들기
 * 먼저 post 리듀서를 만들어본다.
   - reducers/post.js
+* 그 외 연관된 컴포넌트를 분리하여 코딩한다.
+  - reducers/post.js
+  - pages/index.js // post관련 컴포넌트를 연결
+  - components/PostForm.js
+  - components/PostCardContent.js
+  - components/PostCard.js
+  - components/CommentForm.js
+  - components/FollowButton.js
+  - components/PostImages.js
+  - components/ImagesZoom/index.js
+  - components/ImagesZoom/styles.js
+* 의미가 있는 단위로 컴포넌트를 분리한다.
+* 인라인 스타일은 처음엔 그냥 코딩하고 나중에 문제가 생겼다 할때 styled로 빼거나 useMemo로 빼면 된다.
+* 원래 컴포넌트 생성하여 코딩할때 시간이 오래걸림.
 ```javascript
 // state데이터는 서버개발자와 최대한 맞추는게 좋음(협의)
 export const initialState = {
@@ -1326,3 +1341,33 @@ PostCardContent.propTypes = {
 export default PostCardContent;
 ```
 * 그 외 분리한 각 자식 컴포넌트들을 생성하여 코딩한다.
+## 게시글(Post)구현 (위 소스에서 구현됨)
+## 댓글구현(위 소스에서 구현됨)
+## 이미지구현(위 소스에서 구현됨)
+## 이미지 캐러셀 구현(위 소스에서 구현됨)
+* 캐러셀 지원하는 컴포넌트 설치 npm i react-slick 사용
+## 글로벌 스타일, 컴포넌트 폴더구조
+* 글로벌적인 style은 따로 뺀다.(createGlobalStyle 사용)
+  - 스타일을 모아놓는 폴더를 따로 만들어 글로벌로 사용할 styles.js파일을 만들어 그부분에 코딩한다.
+  ```javascript
+  // styled-components에 createGlobalStyle을 사용한다.
+  import { createGlobalStyle } from 'styled-components';
+
+  export const Global = createGlobalStyle`
+    .slick-slide {
+      display: inline-block;
+    }
+    .ant-card-cover {
+      transform: none !important;
+    }
+  `
+  ```
+  - 기존의 style class를 이런식으로 덮어씌울 수 있다.
+  - styled-components를 그냥 사용한것은 최종 class명이 유니크하게 변경되서 들어가지만.
+  - createGlobalStyle를 사용한것은 그 class명이 그대로 바로 들어간다.
+  - 브라우져 버그 : transform 안에 fixed는 제대로 구현이 되지 않아서 transform을 none해줘야함.
+  - styled-components로 만들어진 소스들은 따로 styles.js파일로 빼서 관리한다.
+    - 그리고 각 스타일들은 export해줘서 다른 컴포넌트에서 사용할 수 있게 한다.
+## PostCardContent.js에서 해시태그 링크 구현
+* 정규식을 사용하여 구현.
+
