@@ -993,3 +993,336 @@ const reducer = (state = initialState, action) => {
 export default reducer;
 ```
 * 이렇게 분리해서 만들어진 reducer를 각 화면에서 불러오는 부분도 경로가 틀려졌기 때문에 수정해준다.
+
+## 더미데이터를 이용하여 포스트폼 만들기
+* 가운데 포스트부분을 만들기
+* 먼저 post 리듀서를 만들어본다.
+  - reducers/post.js
+```javascript
+// state데이터는 서버개발자와 최대한 맞추는게 좋음(협의)
+export const initialState = {
+  mainPosts: [{
+    id: 1,
+    User: {
+      id: 1,
+      nickname: '제로초',
+    },
+    content: '첫 번째 게시글',
+    Images: [{
+      src: 'https://bookthumb-phinf.pstatic.net/cover/137/995/13799585.jpg?udate=20180726',
+    }, {
+      src: 'https://gimg.gilbut.co.kr/book/BN001958/rn_view_BN001958.jpg',
+    }, {
+      src: 'https://gimg.gilbut.co.kr/book/BN001998/rn_view_BN001998.jpg',
+    }],
+    Comments: [{
+      User: {
+        nickname: 'nero',
+      },
+      content: '우와 개정판이 나왔군요~',
+    }, {
+      User: {
+        nickname: 'hero',
+      },
+      content: '얼른 사고싶어요~',
+    }]
+  }],
+  imagePaths: [],
+  postAdded: false,
+};
+// 액션타입은 변수로 빼는게 좋음.
+const ADD_POST = 'ADD_POST';
+
+export const addPost = {
+  type: ADD_POST,
+};
+
+const dummyPost = {
+  id: 2,
+  content: '더미데이터입니다.',
+  User: {
+    id: 1,
+    nickname: '제로초',
+  },
+  Images: [],
+  Comments: [],
+};
+
+export default (state = initialState, action) => {
+  switch (action.type) {
+    case ADD_POST: {
+      return {
+        ...state,
+        mainPosts: [dummyPost, ...state.mainPosts],
+        postAdded: true,
+      };
+    }
+    default: {
+      return {
+        ...state,
+      };
+    }
+  }
+};
+```
+* 이제 pages/index.js에 화면을 뿌리기 위해 코딩을 한다.
+```javascript
+import React from 'react';
+import { useSelector } from 'react-redux';
+
+import PostForm from '../components/PostForm';
+import PostCard from '../components/PostCard';
+import AppLayout from '../components/AppLayout';
+
+const Home = () => {
+  const { isLoggedIn } = useSelector(state => state.user);
+  const { mainPosts } = useSelector(state => state.post);
+
+  return (
+    <AppLayout>
+      {isLoggedIn && <PostForm />}
+      {mainPosts.map((c) => {
+        return (
+          <PostCard key={c.id} post={c} />
+        );
+      })}
+    </AppLayout>
+  );
+};
+
+export default Home;
+```
+* 내부에 분리된 컴포넌트 PostForm, PostCard가 있으므로 컴포넌트를 생성해서 코딩한다.
+```javascript
+// components/PostForm.js
+import React, { useRef, useCallback, useState, useEffect } from 'react';
+import { Form, Input, Button } from 'antd';
+import { useDispatch, useSelector } from 'react-redux';
+
+import { addPost } from '../reducers/post';
+
+const PostForm = () => {
+  const { imagePaths, postAdded } = useSelector(state => state.post);
+  const [text, setText] = useState('');
+  const dispatch = useDispatch();
+  const imageInput = useRef();
+
+  const onClickImageUpload = useCallback(() => {
+    imageInput.current.click();
+  }, [imageInput.current]);
+
+  useEffect(() => {
+    if (postAdded) {
+      setText('');
+    }
+  }, [postAdded]);
+
+  const onChangeText = useCallback((e) => {
+    setText(e.target.value);
+  }, []);
+
+  const onSubmit = useCallback(() => {
+    dispatch(addPost);
+  }, []);
+
+  return (
+    <Form style={{ margin: '10px 0 20px' }} encType="multipart/form-data" onFinish={onSubmit}>
+      <Input.TextArea value={text} onChange={onChangeText} maxLength={140} placeholder="어떤 신기한 일이 있었나요?" />
+      <div>
+        <input type="file" multiple hidden ref={imageInput} />
+        <Button onClick={onClickImageUpload}>이미지 업로드</Button>
+        <Button type="primary" style={{ float: 'right' }} htmlType="submit">짹짹</Button>
+      </div>
+      <div>
+        {imagePaths.map((v) => {
+          return (
+            <div key={v} style={{ display: 'inline-block' }}>
+              <img src={'http://localhost:3000/' + v} style={{ width: '200px' }} alt={v} />
+              <div>
+                <Button>제거</Button>
+              </div>
+            </div>
+          )
+        })}
+      </div>
+    </Form>
+  );
+};
+
+export default PostForm;
+```
+```javascript
+// components/PostCard.js------------------------------------------
+import React, { useState, useCallback } from 'react';
+import { Card, Button, Avatar, Popover, List, Comment } from 'antd';
+import PropTypes from 'prop-types';
+import { RetweetOutlined, HeartTwoTone, HeartOutlined, MessageOutlined, EllipsisOutlined } from '@ant-design/icons';
+import styled from 'styled-components';
+import Link from 'next/link';
+import { useSelector } from 'react-redux';
+
+import CommentForm from './CommentForm';
+import PostCardContent from './PostCardContent';
+import PostImages from './PostImages';
+import FollowButton from './FollowButton';
+
+const CardWrapper = styled.div`
+  margin-bottom: 20px;
+`;
+
+const PostCard = ({ post }) => {
+  const [commentFormOpened, setCommentFormOpened] = useState(false);
+  const id = useSelector((state) => state.user.me && state.user.me.id);
+
+  const [liked, setLiked] = useState(false);
+
+  const onToggleLike = useCallback(() => {
+    setLiked((prev) => !prev);
+  }, []);
+
+  const onToggleComment = useCallback(() => {
+    setCommentFormOpened((prev) => !prev);
+  }, []);
+
+  return (
+    <CardWrapper key={post.id}>
+      <Card
+        cover={post.Images[0] && <PostImages images={post.Images} />}
+        actions={[
+          <RetweetOutlined key="retweet" />,
+          liked
+            ? <HeartTwoTone twoToneColor="#eb2f96" key="heart" onClick={onToggleLike} />
+            : <HeartOutlined key="heart" onClick={onToggleLike} />,
+          <MessageOutlined key="message" onClick={onToggleComment} />,
+          <Popover
+            key="ellipsis"
+            content={(
+              <Button.Group>
+                {id && post.User.id === id
+                  ? (
+                    <>
+                      <Button>수정</Button>
+                      <Button type="danger">삭제</Button>
+                    </>
+                  )
+                  : <Button>신고</Button>}
+              </Button.Group>
+            )}
+          >
+            <EllipsisOutlined />
+          </Popover>,
+        ]}
+        extra={<FollowButton post={post} />}
+      >
+        <Card.Meta
+          avatar={<Avatar>{post.User.nickname[0]}</Avatar>}
+          title={post.User.nickname}
+          description={<PostCardContent postData={post.content} />}
+        />
+      </Card>
+      {commentFormOpened && (
+        <>
+          <CommentForm post={post} />
+          <List
+            header={`${post.Comments.length} 댓글`}
+            itemLayout="horizontal"
+            dataSource={post.Comments}
+            renderItem={(item) => (
+              <li>
+                <Comment
+                  author={item.User.nickname}
+                  avatar={(
+                    <Link href={{ pathname: '/user', query: { id: item.User.id } }} as={`/user/${item.User.id}`}>
+                      <a><Avatar>{item.User.nickname[0]}</Avatar></a>
+                    </Link>
+                  )}
+                  content={item.content}
+                />
+              </li>
+            )}
+          />
+        </>
+      )}
+    </CardWrapper>
+  );
+};
+
+PostCard.propTypes = {
+  post: PropTypes.shape({
+    id: PropTypes.number,
+    User: PropTypes.object,
+    content: PropTypes.string,
+    createdAt: PropTypes.object,
+    Comments: PropTypes.arrayOf(PropTypes.any),
+    Images: PropTypes.arrayOf(PropTypes.any),
+  }),
+};
+
+export default PostCard;
+```
+```javascript
+// components/CommentForm.js------------------------------------------------
+  
+import { Button, Form, Input } from 'antd';
+import React, { useCallback, useState } from 'react';
+import PropTypes from 'prop-types';
+
+const CommentForm = ({ post }) => {
+  const [commentText, setCommentText] = useState('');
+
+  const onSubmitComment = useCallback(() => {
+    console.log(commentText);
+  }, [commentText]);
+
+  const onChangeCommentText = useCallback((e) => {
+    setCommentText(e.target.value);
+  }, []);
+
+  return (
+    <Form onFinish={onSubmitComment}>
+      <Form.Item style={{ position: 'relative', margin: 0 }}>
+        <Input.TextArea rows={4} value={commentText} onChange={onChangeCommentText} />
+        <Button style={{ position: 'absolute', right: 0, bottom: -40 }} type="primary" htmlType="submit">삐약</Button>
+      </Form.Item>
+    </Form>
+  );
+};
+
+CommentForm.propTypes = {
+  post: PropTypes.object.isRequired,
+};
+
+export default CommentForm;
+```
+```javascript
+// components/PostCardContent.js--------------------------------------------------
+import React from 'react';
+import Link from 'next/link';
+import PropTypes from 'prop-types';
+
+const PostCardContent = ({ postData }) => (
+  <div>
+    {postData.split(/(#[^\s#]+)/g).map((v) => {
+      if (v.match(/(#[^\s]+)/)) {
+        return (
+          <Link
+            href={{ pathname: '/hashtag', query: { tag: v.slice(1) } }}
+            as={`/hashtag/${v.slice(1)}`}
+            key={v}
+          >
+            <a>{v}</a>
+          </Link>
+        );
+      }
+      return v;
+    })}
+  </div>
+);
+
+PostCardContent.propTypes = {
+  postData: PropTypes.string.isRequired,
+};
+
+export default PostCardContent;
+```
+* 그 외 분리한 각 자식 컴포넌트들을 생성하여 코딩한다.
