@@ -1413,3 +1413,6 @@ export const loginAction = (data) => {
   };
 };
 ```
+* 기능이 많이 부족하므로 무조건 redux-saga를 쓴다.
+## saga 설치, generator 함수 이해하기.
+*..
