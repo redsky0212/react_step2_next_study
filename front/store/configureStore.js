@@ -4,8 +4,13 @@ import {composeWithDevTools} from 'redux-devtools-extension';
 
 import reducer from '../reducers';
 
+const loggerMiddleware = ({dispatch, getState}) => (next) => (action) => {
+  console.log(action); // 간단하게 action실행했을때 로그 찍어주는 기능의 미들웨어
+  return next(action);
+};
+
 const configureSotre = () => {
-  const middlewares = [];
+  const middlewares = [loggerMiddleware];
   const enhancer = process.env.NODE_ENV === 'production' ?
                     compose(applyMiddleware(...middlewares)) // 배포용일때는 devtools와 연결하지 않음.
                     : composeWithDevTools(applyMiddleware(...middlewares)) // 개발일때는 devtools와 연결

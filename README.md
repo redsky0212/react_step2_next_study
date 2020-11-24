@@ -1371,3 +1371,45 @@ export default PostCardContent;
 ## PostCardContent.js에서 해시태그 링크 구현
 * 정규식을 사용하여 구현.
 
+# Redux-saga 연동
+## 우선 redux-thunk 이해
+* 비동기 action을 처리할 수 있는 미들웨어
+* npm i redux-thunk (나중에는 saga를 쓸꺼기때문에 이해만 하고 넘어가자)
+* 미들웨어는 고차함수이다.
+  - 아래는 내가 만든 미들웨어를 끼워넣은 모습.
+```javascript
+// 내가 만든 logger미들웨어
+const loggerMiddleware = ({dispatch, getState}) => (next) => (action) => {
+  console.log(action); // 간단하게 action실행했을때 로그 찍어주는 기능의 미들웨어
+  return next(action);
+};
+
+const configureSotre = () => {
+  const middlewares = [loggerMiddleware]; // 미들웨어를 여기에 장착한다.
+  const enhancer = process.env.NODE_ENV === 'production' ?
+                    compose(applyMiddleware(...middlewares)) // 배포용일때는 devtools와 연결하지 않음.
+                    : composeWithDevTools(applyMiddleware(...middlewares)) // 개발일때는 devtools와 연결
+
+  const store = createStore(reducer, enhancer);
+  return store;
+};
+```
+* thunk의 비동기 처리에는 request, success, failure 3가지가 셋트로 구성된다.
+  - 함수안에서 비동기 호출시 dispatch를 나눠서 실행한다.
+    - request dispatch, 성공dispatch, 실패dispatch
+* thunk는 이렇게 비동기 action creator를 할 수 있고 dispatch를 나눠서 여러번 처리할 수 있다는 것. (이게 thunk의 기능 다이다. 나머지 기능은 모두 필요하면 구현해야함.)
+```javascript
+export const loginAction = (data) => {
+  return (dispatch, getState) => {
+    const state = getState();
+    dispatch(loginRequestAction());
+    axios.post('/api/login')
+      .then((res) => {
+        dispatch(loginSuccessAction(res.data));
+      })
+      .catch((err) => {
+        dispatch(loginFailureAction(err));
+      })
+  };
+};
+```
