@@ -1415,4 +1415,111 @@ export const loginAction = (data) => {
 ```
 * 기능이 많이 부족하므로 무조건 redux-saga를 쓴다.
 ## saga 설치, generator 함수 이해하기.
+* npm i redux-saga
+* next에서 saga를 사용하려면 npm i next-redux-saga 설치.
+* configureStore.js에 saga관련 추가 설정 코딩을 한다.
+  - 사가 추가부분 주석 참조.
+```javascript
+// redux-saga를 가져온다.
+import createSagaMiddleware from 'redux-saga';
+
+import reducer from '../reducers';
+// 리듀서처럼 루트사가를 폴더를 생성하여 만든다.
+import rootSaga from '../sagas';
+
+const configureStore = () => {
+  // saga미들웨어를 가져온다.
+  const sagaMiddleware = createSagaMiddleware();
+  // 미들웨어 배열에 넣어준다.
+  const middlewares = [sagaMiddleware];
+
+  const enhancer = process.env.NODE_ENV === 'production' ?
+                    compose(applyMiddleware(...middlewares)) // 배포용일때는 devtools와 연결하지 않음.
+                    : composeWithDevTools(applyMiddleware(...middlewares)) // 개발일때는 devtools와 연결
+
+  const store = createStore(reducer, enhancer);
+  // 스토어의 사가타스크에 루트사가를 연결한다.
+  store.sagaTask = sagaMiddleware.run(rootSaga);
+
+  return store;
+};
+```
+* 또한 _app.js에 루트 컴포넌트인 NodeBird컴포넌트를 사라로 감싸준다.
+  - next를 사용하기때문에 next랑 연결해주기 위하여 사용.
+```javascript
+import withReduxSaga from 'next-redux-saga';
+// 사가를 고차함수로 감싸준다. 
+export default wrapper.withRedux(withReduxSaga(NodeBird));
+```
+* sagas폴더를 생성하고 index.js파일 생성하여 사가를 만들어 본다.
+  - generator함수를 사용, 이해하고 공부 필요.
+  - 제너레이터는 중단점이 있는 함수이다. yield부분에서 멈춤.
+```javascript
+// 제너레이터 함수
+const gen = function* () {
+  console.log(1);
+  yield 1;
+  console.log(2);
+  yield 2;
+  console.log(3);
+  yield 3;
+};
+const g = gen():
+// 실행시키기
+g.next();
+```
+* saga는 이 제너레이터 함수를 이용하여 이벤트리스너 처럼 활용하여 만든거임.
+
+## saga 이펙트 알아보기
+* all, fork, call, put, take 등등
+* 제너레이터 함수의 멈추는 부분 yield부분에서 saga이펙트를 실행한다.
+  - all : 배열을 인자로 받는 이펙트 --> 배열안에 것들을 한방에 실행.
+  - fork : 인자인 제너레이터함수를 실행하는것. (비동기)
+  - call : 인자인 제너레이터함수를 실행하는것. (동기)
+  - take : 인자인 제너레이터함수의 action이 실행될때까지 기다리겠다는 의미.
+  - put : dispatch라 생각하면 됨.
+```javascript
+import {take, put, call, fork, all} from 'redux-saga/effects';
+
+// api호출하는 함수는 제너레이터로 만들지 않는다.
+// 넘겨진 인자 받는부분 기억하기
+function logInAPI(data, a, b) {
+  //axios호출
+}
+function* logIn(action) {
+  try {
+    // call은 동기 이기때문에 result에 받을 수 있지만
+    // 만약 fork로 사용했다면 result로 받기전에 아래쪽 put이 실행되버린다.
+    // 인자들 받아서 처리하는 부분 기억하기
+    const result = yield call(logInAPI, action.data, 'a', 'b');
+    yield put({
+      type: 'LOG_IN_SUCCESS',
+      data: result.data,
+    });
+  } catch (err) {
+    yield put({
+      type: 'LOG_IN_FAILURE',
+      data: err.response.data,
+    });
+  }
+}
+function* watchLogIn() {
+  yield take('LOG_IN_REQUEST', logIn);
+}
+function* watchLogOut() {
+  yield take('LOG_OUT_REQUEST');
+}
+function* watchAddPost() {
+  yield take('ADD_POST_REQUEST');
+}
+export default function* rootSaga() {
+  // all로 3가지 함수를 등록하였다.
+  yield all([
+    fork(watchLogIn),
+    fork(watchLogOut),
+    fork(watchAddPost),
+  ]);
+}
+```
+## saga이펙트의 take, take시리즈 이펙트, throttle 알아보기
 *..
