@@ -1522,4 +1522,44 @@ export default function* rootSaga() {
 }
 ```
 ## saga이펙트의 take, take시리즈 이펙트, throttle 알아보기
-*..
+* take : 1회만 실행.
+  - 한번 실행하면 다음부터는 실행되지 않는 이펙트
+```javascript
+// watchLogIn제너레이터 함수를 실행하면 한번만 실행되고 다음부터는 실행되지 않는다.
+function* watchLogIn() {
+  yield take('LOG_IN_REQUEST', logIn);
+}
+// 그래서 아래와 같이 코딩할 수 있따.
+// 하지만 이와같이 while방식은 직관적이지 않고 좋은 코딩방식이 아니라 다른 이펙트를 사용한다.
+function* watchLogIn() {
+  while(true) {
+    yield take('LOG_IN_REQUEST', logIn);
+  }
+}
+```
+* takeEvery : 실행한 횟수만큼 모두 실행해주는 이펙트
+```javascript
+// watchLogIn을 실행한 횟수만큼 모두 실행해준다.
+// 하지만 takeEvery는 순간적으로 두 번 클릭했을경우에도 무조건 두 번 다 실행해 주므로 문제가 생길 수 있다.
+function* watchLogIn() {
+  yield takeEvery('LOG_IN_REQUEST', logIn);
+}
+```
+* takeLatest : 순간적으로 여러번 실행했을때 맨 마지막 실행 요건만 실행하는 것.
+  - 물론 여러번 실행했을때 결과가 서버로 부터 도착하지 않았을때의 경우만 해당된다.
+  - 그것은 곧 request는 모든 실행에 대하여 막지 못하고 발생된다는 의미이고, reponse만 마지막것만 실행된다는 의미이다.
+  - 치명적인 프론트 단점이므로 백앤드 서버쪽에서 똑같은 request가 왔을때 하나만 처리하게끔 처리를 해줘야만 한다.
+* takeLeading : 반대로 순간적으로 여러번 실행했을때 맨 첫번째 것만 실행하는 것.
+* throttle : 그런 단점을 좀 더 개선하기 위하여 사용하는 이펙트.
+  - 타임제한을 줘서 그 시간동안은 실행되지 않게 처리하는 것.
+```javascript
+function* watchLogIn() {
+  // 2초 동안은 순간적으로 실행되지 않게 처리.
+  yield throttle('LOG_IN_REQUEST', logIn, 2000);
+}
+```
+* 결론 : 보통은 takeLatest로적용을 하고 순간적인 동일 request는 서버에서 검증을 하는 방향으로 한다.
+  - throttle은 특수한 경우에 적용하는 방향으로 한다.
+* 지금까지 예제 소스는 서버가 없으므로 delay이펙트를 사용하여 더미데이터로 데이터를 제공하게 코딩한다.
+* 이펙트중에 쓰로틀링, 디바운싱 이 기능이 비슷한데 zerocho블로그를 참조해서 파악 필요.
+  - [쓰로틀링, 디바운싱 비교](https://www.zerocho.com/category/JavaScript/post/59a8e9cb15ac0000182794fa)
